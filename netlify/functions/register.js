@@ -77,6 +77,9 @@ exports.handler = async (event) => {
       return json(409, { error: "Ese correo ya tiene una cuenta. Prueba entrando." });
     }
 
-    return json(500, { error: "No se pudo crear la cuenta. Intentalo nuevamente." });
+    return json(500, {
+      error: "No se pudo crear la cuenta. Intentalo nuevamente.",
+      detail: error.message || String(error),
+    });
   }
 };
