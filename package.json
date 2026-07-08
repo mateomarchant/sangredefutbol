@@ -1,0 +1,11 @@
+{
+  "name": "sangredefutbol",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "echo \"Static site ready\""
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.4"
+  }
+}
