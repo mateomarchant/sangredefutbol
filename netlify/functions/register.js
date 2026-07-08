@@ -1,7 +1,5 @@
 const crypto = require("crypto");
-const { neon } = require("@neondatabase/serverless");
-
-const connectionString = process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL;
+const { getDatabase } = require("@netlify/database");
 
 function json(statusCode, body) {
   return {
@@ -24,8 +22,8 @@ function hashPassword(password) {
   return `${salt}:${hash}`;
 }
 
-async function ensureUsersTable(sql) {
-  await sql`
+async function ensureUsersTable(db) {
+  await db.sql`
     CREATE TABLE IF NOT EXISTS users (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       name TEXT NOT NULL,
@@ -42,10 +40,6 @@ async function ensureUsersTable(sql) {
 exports.handler = async (event) => {
   if (event.httpMethod !== "POST") {
     return json(405, { error: "Metodo no permitido." });
-  }
-
-  if (!connectionString) {
-    return json(500, { error: "Falta configurar DATABASE_URL en Netlify." });
   }
 
   let data;
@@ -67,10 +61,10 @@ exports.handler = async (event) => {
   if (password.length < 6) return json(400, { error: "La contrasena debe tener al menos 6 caracteres." });
 
   try {
-    const sql = neon(connectionString);
-    await ensureUsersTable(sql);
+    const db = getDatabase();
+    await ensureUsersTable(db);
 
-    const rows = await sql`
+    const rows = await db.sql`
       INSERT INTO users (name, email, commune, password_hash, provider)
       VALUES (${name}, ${email}, ${commune}, ${hashPassword(password)}, ${provider})
       RETURNING id, name, email, commune, provider, role, created_at

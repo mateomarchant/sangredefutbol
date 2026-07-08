@@ -1,7 +1,5 @@
 const crypto = require("crypto");
-const { neon } = require("@neondatabase/serverless");
-
-const connectionString = process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL;
+const { getDatabase } = require("@netlify/database");
 
 function json(statusCode, body) {
   return {
@@ -31,10 +29,6 @@ exports.handler = async (event) => {
     return json(405, { error: "Metodo no permitido." });
   }
 
-  if (!connectionString) {
-    return json(500, { error: "Falta configurar DATABASE_URL en Netlify." });
-  }
-
   let data;
   try {
     data = JSON.parse(event.body || "{}");
@@ -50,8 +44,8 @@ exports.handler = async (event) => {
   }
 
   try {
-    const sql = neon(connectionString);
-    const rows = await sql`
+    const db = getDatabase();
+    const rows = await db.sql`
       SELECT id, name, email, commune, provider, role, created_at, password_hash
       FROM users
       WHERE email = ${email}
