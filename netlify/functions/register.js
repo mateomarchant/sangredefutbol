@@ -25,7 +25,7 @@ function hashPassword(password) {
 async function ensureUsersTable(db) {
   await db.sql`
     CREATE TABLE IF NOT EXISTS users (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       email TEXT NOT NULL UNIQUE,
       commune TEXT NOT NULL,
@@ -63,10 +63,11 @@ exports.handler = async (event) => {
   try {
     const db = getDatabase();
     await ensureUsersTable(db);
+    const id = crypto.randomUUID ? crypto.randomUUID() : crypto.randomBytes(16).toString("hex");
 
     const rows = await db.sql`
-      INSERT INTO users (name, email, commune, password_hash, provider)
-      VALUES (${name}, ${email}, ${commune}, ${hashPassword(password)}, ${provider})
+      INSERT INTO users (id, name, email, commune, password_hash, provider)
+      VALUES (${id}, ${name}, ${email}, ${commune}, ${hashPassword(password)}, ${provider})
       RETURNING id, name, email, commune, provider, role, created_at
     `;
 
